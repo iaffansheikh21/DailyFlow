@@ -42,7 +42,7 @@ export default function SignUpPage() {
     }
 
     if (formData.password.length < 6) {
-      toast.error("Password must be at least 6 characters")
+      toast.error("Password must be at least 8 characters")
       return
     }
 
@@ -57,19 +57,11 @@ export default function SignUpPage() {
       // Backend response: { message, token? }
       const { token, message } = res.data
 
-      // Optional: If backend returns token after registration, auto-login
-      if (token) {
-        login(token)
-        toast.success(message || "Account created! Redirecting...")
-        setTimeout(() => {
-          router.push("/dashboard")
-        }, 1500)
-      } else {
-        toast.success(message || "Account created! Redirecting to login...")
-        setTimeout(() => {
-          router.push("/login")
-        }, 1500)
-      }
+      toast.success(message || "Account created! Redirecting to login...")
+      setTimeout(() => {
+        router.push("/login")
+      }, 1500)
+
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || "Registration failed"
       toast.error(errorMessage)
@@ -117,7 +109,7 @@ export default function SignUpPage() {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="you@example.com"
+                placeholder="you@gmail.com"
                 disabled={loading}
               />
             </motion.div>
@@ -129,7 +121,7 @@ export default function SignUpPage() {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                placeholder="••••••••"
+                placeholder="********"
                 disabled={loading}
               />
             </motion.div>
@@ -141,7 +133,7 @@ export default function SignUpPage() {
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                placeholder="••••••••"
+                placeholder="********"
                 disabled={loading}
               />
             </motion.div>
