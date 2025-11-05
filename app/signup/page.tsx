@@ -8,16 +8,18 @@ import { motion } from "framer-motion"
 import { toast } from "react-toastify"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import {useAuth} from "@/context/AuthContext"
 import apiClient from "@/lib/apiClient"
+import { useAuth } from "@/context/AuthContext"
 
-export default function LoginPage() {
+export default function SignUpPage() {
   const router = useRouter()
   const { login } = useAuth()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
+    name: "",
     email: "",
     password: "",
+    confirmPassword: "",
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -28,36 +30,48 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!formData.email || !formData.password) {
-      toast.error("Email and password are required")
+    // Validation
+    if (!formData.name || !formData.email || !formData.password) {
+      toast.error("All fields are required")
+      return
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      toast.error("Passwords do not match")
+      return
+    }
+
+    if (formData.password.length < 6) {
+      toast.error("Password must be at least 6 characters")
       return
     }
 
     setLoading(true)
     try {
-      // ✅ matches your backend endpoint
-      const res = await apiClient.post("/api/auth/login", {
+      const res = await apiClient.post("/api/auth/register", {
+        name: formData.name,
         email: formData.email,
         password: formData.password,
       })
 
-      // ✅ backend returns { message, token }
+      // Backend response: { message, token? }
       const { token, message } = res.data
 
-      if (!token) {
-        toast.error("No token received from server")
-        return
+      // Optional: If backend returns token after registration, auto-login
+      if (token) {
+        login(token)
+        toast.success(message || "Account created! Redirecting...")
+        setTimeout(() => {
+          router.push("/dashboard")
+        }, 1500)
+      } else {
+        toast.success(message || "Account created! Redirecting to login...")
+        setTimeout(() => {
+          router.push("/login")
+        }, 1500)
       }
-
-      // ✅ save token via AuthContext (stores in localStorage)
-      login(token)
-
-      toast.success(message || "Login successful!")
-      setTimeout(() => {
-        router.push("/dashboard")
-      }, 1000)
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || "Login failed"
+      const errorMessage = err.response?.data?.message || "Registration failed"
       toast.error(errorMessage)
     } finally {
       setLoading(false)
@@ -79,12 +93,24 @@ export default function LoginPage() {
             transition={{ delay: 0.2 }}
             className="text-3xl font-bold text-foreground mb-2 text-center"
           >
-            Welcome Back
+            Create Account
           </motion.h1>
-          <p className="text-muted-foreground text-center mb-6">Login to your account</p>
+          <p className="text-muted-foreground text-center mb-6">Join us to manage your todos</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
+              <label className="block text-sm font-medium text-foreground mb-2">Full Name</label>
+              <Input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="John Doe"
+                disabled={loading}
+              />
+            </motion.div>
+
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}>
               <label className="block text-sm font-medium text-foreground mb-2">Email</label>
               <Input
                 type="email"
@@ -96,7 +122,7 @@ export default function LoginPage() {
               />
             </motion.div>
 
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
               <label className="block text-sm font-medium text-foreground mb-2">Password</label>
               <Input
                 type="password"
@@ -108,21 +134,33 @@ export default function LoginPage() {
               />
             </motion.div>
 
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.45 }}>
+              <label className="block text-sm font-medium text-foreground mb-2">Confirm Password</label>
+              <Input
+                type="password"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                placeholder="••••••••"
+                disabled={loading}
+              />
+            </motion.div>
+
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
               <Button
                 type="submit"
                 disabled={loading}
                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
               >
-                {loading ? "Logging in..." : "Login"}
+                {loading ? "Creating Account..." : "Sign Up"}
               </Button>
             </motion.div>
           </form>
 
           <p className="text-center text-muted-foreground mt-6">
-            Don&apos;t have an account?{" "}
-            <Link href="/signup" className="text-primary hover:underline font-semibold">
-              Sign up
+            Already have an account?{" "}
+            <Link href="/login" className="text-primary hover:underline font-semibold">
+              Login
             </Link>
           </p>
         </div>
