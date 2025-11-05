@@ -8,7 +8,7 @@ import { motion } from "framer-motion"
 import { toast } from "react-toastify"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import {useAuth} from "@/context/AuthContext"
+import { useAuth } from "@/context/AuthContext"
 import apiClient from "@/lib/apiClient"
 
 export default function LoginPage() {
@@ -103,7 +103,7 @@ export default function LoginPage() {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                placeholder="••••••••"
+                placeholder="********"
                 disabled={loading}
               />
             </motion.div>
