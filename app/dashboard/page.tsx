@@ -37,7 +37,8 @@ export default function DashboardPage() {
   const fetchTodos = async () => {
     try {
       setLoading(true)
-      const res = await apiClient.get("/todos") // ✅ your backend route style (no /api prefix)
+      // const res = await apiClient.get("/todos") // ✅ your backend route style (no /api prefix)
+      const res = await apiClient.get("/api/todos")
       setTodos(res.data.todos || [])
     } catch (err: any) {
       const message =
@@ -124,10 +125,10 @@ export default function DashboardPage() {
               {filterOption === "all"
                 ? "All"
                 : filterOption === "todo"
-                ? "To Do"
-                : filterOption === "in-progress"
-                ? "In Progress"
-                : "Done"}
+                  ? "To Do"
+                  : filterOption === "in-progress"
+                    ? "In Progress"
+                    : "Done"}
             </Button>
           ))}
         </motion.div>
@@ -164,7 +165,7 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Stats Section */}
+        {/* Stats Section*/}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
