@@ -22,12 +22,12 @@ export async function POST(request: Request) {
       );
     }
 
-    console.log("password before save  ", password);
+    // console.log("password before save  ", password);
     const user = new User({ name, email, password });
 
     await user.save();
-    console.log("password after save  ", user.password);
-    console.log("Saved USer ", user);
+    // console.log("password after save  ", user.password);
+    // console.log("Saved USer ", user);
 
     return NextResponse.json(
       {
