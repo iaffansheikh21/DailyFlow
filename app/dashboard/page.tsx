@@ -25,21 +25,20 @@ export default function DashboardPage() {
   const [todos, setTodos] = useState<Todo[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState("all")
-  const [searchQuery, setSearchQuery] = useState("")
-  const [sortOption, setSortOption] = useState("default")
+  const [searchTerm, setSearchTerm] = useState("")
+  const [priorityFilter, setPriorityFilter] = useState("all")
 
-  // Redirect unauthenticated users to login
+  // Redirect unauthenticated users
   useEffect(() => {
     if (!authLoading && !token) {
       router.replace("/login")
     }
   }, [authLoading, token, router])
 
-  // Fetch todos from backend
+  // Fetch todos
   const fetchTodos = async () => {
     try {
       setLoading(true)
-      // const res = await apiClient.get("/todos") // ✅ your backend route style (no /api prefix)
       const res = await apiClient.get("/api/todos")
       setTodos(res.data.todos || [])
     } catch (err: any) {
@@ -61,25 +60,15 @@ export default function DashboardPage() {
     router.push("/login")
   }
 
-  const filteredTodos = todos
-    // 1️⃣ Filter by status
-    .filter((todo) => (filter === "all" ? true : todo.status === filter))
-    // 2️⃣ Filter by search query
-    .filter((todo) =>
-      todo.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      todo.description.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-    // 3️⃣ Sort by selected option
-    .sort((a, b) => {
-      if (sortOption === "dueDate") {
-        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
-      } else if (sortOption === "priority") {
-        const priorityOrder = { low: 1, medium: 2, high: 3 }
-        return priorityOrder[b.priority] - priorityOrder[a.priority]
-      }
-      return 0
-    })
-
+  const filteredTodos = todos.filter((todo) => {
+    const matchesStatus = filter === "all" ? true : todo.status === filter
+    const matchesPriority =
+      priorityFilter === "all" ? true : todo.priority === priorityFilter
+    const matchesSearch = todo.title
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase())
+    return matchesStatus && matchesPriority && matchesSearch
+  })
 
   if (authLoading) {
     return (
@@ -98,7 +87,7 @@ export default function DashboardPage() {
       <motion.header
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-card border-b border-border sticky top-0 z-50"
+        className="bg-card border-b border-border sticky top-0 z-50 shadow-sm"
       >
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div>
@@ -110,7 +99,7 @@ export default function DashboardPage() {
           <Button
             onClick={handleLogout}
             variant="outline"
-            className="border-destructive text-destructive hover:bg-destructive/10 bg-transparent"
+            className="border-destructive text-destructive hover:bg-destructive/10 transition-colors duration-200"
           >
             Logout
           </Button>
@@ -118,58 +107,59 @@ export default function DashboardPage() {
       </motion.header>
 
       {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-4 py-8">
+      <main className="max-w-6xl mx-auto px-4 py-8 space-y-8">
         {/* Todo Form */}
         <TodoForm onTodoCreated={fetchTodos} />
 
-        {/* Filter Buttons */}
+        {/* Search & Filter Section */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.1 }}
-          className="flex gap-2 mb-6"
+          className="flex flex-col sm:flex-row sm:flex-wrap gap-3 justify-between items-center bg-card/50 border border-border rounded-lg p-4 shadow-sm"
         >
-          {["all", "todo", "in-progress", "done"].map((filterOption) => (
-            <Button
-              key={filterOption}
-              onClick={() => setFilter(filterOption)}
-              variant={filter === filterOption ? "default" : "outline"}
-              className={
-                filter === filterOption
-                  ? "bg-primary hover:bg-primary/90 text-primary-foreground"
-                  : ""
-              }
-            >
-              {filterOption === "all"
-                ? "All"
-                : filterOption === "todo"
-                  ? "To Do"
-                  : filterOption === "in-progress"
-                    ? "In Progress"
-                    : "Done"}
-            </Button>
-          ))}
-        </motion.div>
-        {/* Search & Sort Controls */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-2">
           <input
             type="text"
-            placeholder="Search todos..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="border border-border rounded-md px-3 py-2 w-full sm:w-1/2 bg-background text-foreground"
+            placeholder="Search todos by title..."
+            className="border border-border rounded-lg px-4 py-2 w-full sm:w-1/2 focus:ring-2 focus:ring-primary outline-none transition-all duration-200 bg-background text-foreground"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
 
-          <select
-            value={sortOption}
-            onChange={(e) => setSortOption(e.target.value)}
-            className="border border-border rounded-md px-3 py-2 bg-background text-foreground"
-          >
-            <option value="default">Sort By</option>
-            <option value="dueDate">Due Date</option>
-            <option value="priority">Priority</option>
-          </select>
-        </div>
+          <div className="flex flex-wrap gap-2 justify-center sm:justify-end">
+            <select
+              value={priorityFilter}
+              onChange={(e) => setPriorityFilter(e.target.value)}
+              className="border border-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary outline-none bg-background text-foreground transition-all duration-200"
+            >
+              <option value="all">All Priorities</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+
+            {["all", "todo", "in-progress", "done"].map((filterOption) => (
+              <Button
+                key={filterOption}
+                onClick={() => setFilter(filterOption)}
+                variant={filter === filterOption ? "default" : "outline"}
+                className={`transition-all duration-200 ${
+                  filter === filterOption
+                    ? "bg-primary text-primary-foreground shadow-md hover:shadow-lg"
+                    : "hover:bg-muted"
+                }`}
+              >
+                {filterOption === "all"
+                  ? "All"
+                  : filterOption === "todo"
+                  ? "To Do"
+                  : filterOption === "in-progress"
+                  ? "In Progress"
+                  : "Done"}
+              </Button>
+            ))}
+          </div>
+        </motion.div>
 
         {/* Todos List */}
         <div>
@@ -182,12 +172,12 @@ export default function DashboardPage() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="text-center py-12 bg-card border border-border rounded-lg"
+              className="text-center py-12 bg-card border border-border rounded-lg shadow-sm"
             >
               <p className="text-muted-foreground text-lg">
                 {todos.length === 0
                   ? "No todos yet. Create one to get started!"
-                  : "No todos in this category."}
+                  : "No todos match your search or filters."}
               </p>
             </motion.div>
           ) : (
@@ -195,60 +185,41 @@ export default function DashboardPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ staggerChildren: 0.1 }}
+              className="grid gap-4"
             >
               {filteredTodos.map((todo) => (
-                <TodoCard key={todo._id} todo={todo} onUpdate={fetchTodos} />
+                <motion.div
+                  key={todo._id}
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                >
+                  <TodoCard todo={todo} onUpdate={fetchTodos} />
+                </motion.div>
               ))}
             </motion.div>
           )}
         </div>
 
-        {/* Stats Section*/}
-        {/* <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8"
-        >
-          <div className="bg-card border border-border rounded-lg p-4 text-center">
-            <p className="text-2xl font-bold text-primary">
-              {todos.filter((t) => t.status === "todo").length}
-            </p>
-            <p className="text-sm text-muted-foreground">To Do</p>
-          </div>
-          <div className="bg-card border border-border rounded-lg p-4 text-center">
-            <p className="text-2xl font-bold text-accent">
-              {todos.filter((t) => t.status === "in-progress").length}
-            </p>
-            <p className="text-sm text-muted-foreground">In Progress</p>
-          </div>
-          <div className="bg-card border border-border rounded-lg p-4 text-center">
-            <p className="text-2xl font-bold text-green-500">
-              {todos.filter((t) => t.status === "done").length}
-            </p>
-            <p className="text-sm text-muted-foreground">Done</p>
-          </div>
-        </motion.div> */}
         {/* Stats Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8"
+          className="grid grid-cols-1 sm:grid-cols-3 gap-4"
         >
-          <div className="bg-card border border-border rounded-lg p-4 text-center">
+          <div className="bg-card border border-border rounded-lg p-4 text-center shadow-sm hover:shadow-md transition-all duration-300">
             <p className="text-2xl font-bold text-primary">
               {todos.filter((t) => t.status === "todo").length}
             </p>
             <p className="text-sm text-muted-foreground">To Do</p>
           </div>
-          <div className="bg-card border border-border rounded-lg p-4 text-center">
+          <div className="bg-card border border-border rounded-lg p-4 text-center shadow-sm hover:shadow-md transition-all duration-300">
             <p className="text-2xl font-bold text-accent">
               {todos.filter((t) => t.status === "in-progress").length}
             </p>
             <p className="text-sm text-muted-foreground">In Progress</p>
           </div>
-          <div className="bg-card border border-border rounded-lg p-4 text-center">
+          <div className="bg-card border border-border rounded-lg p-4 text-center shadow-sm hover:shadow-md transition-all duration-300">
             <p className="text-2xl font-bold text-green-500">
               {todos.filter((t) => t.status === "done").length}
             </p>
@@ -258,22 +229,23 @@ export default function DashboardPage() {
 
         {/* Progress Bar */}
         {todos.length > 0 && (
-          <div className="mt-6 bg-card border border-border rounded-lg p-4">
+          <div className="mt-6 bg-card border border-border rounded-lg p-4 shadow-sm">
             <p className="text-sm text-muted-foreground mb-2">Overall Progress</p>
             <div className="w-full bg-muted rounded-full h-3">
               <div
-                className="bg-green-500 h-3 rounded-full transition-all duration-300"
+                className="bg-green-500 h-3 rounded-full transition-all duration-500"
                 style={{
-                  width: `${(todos.filter((t) => t.status === "done").length / todos.length) *
+                  width: `${
+                    (todos.filter((t) => t.status === "done").length / todos.length) *
                     100
-                    }%`,
+                  }%`,
                 }}
               ></div>
             </div>
           </div>
         )}
-
       </main>
     </div>
   )
 }
+

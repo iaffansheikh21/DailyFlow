@@ -1,9 +1,3 @@
-// import { NextResponse } from "next/server"
-
-// export async function GET() {
-//   return NextResponse.json({ message: "Backend working!" }, { status: 200 })
-// }
-
 import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
