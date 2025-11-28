@@ -6,7 +6,7 @@ import { AuthProvider } from "@/context/AuthContext"
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'todo-app',
+  title: 'TodoFlow',
   description: 'A modern todo application built with Next.js and Geist UI',
 }
 
