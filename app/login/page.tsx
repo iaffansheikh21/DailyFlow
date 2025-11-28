@@ -117,6 +117,15 @@ export default function LoginPage() {
                 {loading ? "Logging in..." : "Login"}
               </Button>
             </motion.div>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.45 }}>
+              <Link
+                href="/forgot-password"
+                className="block text-center text-primary hover:underline font-semibold mt-2"
+              >
+                Forgot Password?
+              </Link>
+            </motion.div>
+
           </form>
 
           <p className="text-center text-muted-foreground mt-6">
